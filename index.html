@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>SAGA — an AI that makes you reason</title>
+<meta name="description" content="SAGA is the offline AI viva for Indian classrooms — an AI that asks until the student can defend what they know, on phones they already own. Built, running today.">
+<meta property="og:title" content="SAGA — an AI that makes you reason">
+<meta property="og:description" content="The offline AI viva for Indian classrooms — an AI that asks until the student can defend what they know, on phones they already own.">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<style>
+/* ---- fonts (real files, self-hosted) ---- */
+@font-face{
+  font-family:'Cormorant Garamond';
+  src:url('assets/fonts/CormorantGaramond-Regular.ttf') format('truetype');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'Cormorant Garamond';
+  src:url('assets/fonts/CormorantGaramond-SemiBold.ttf') format('truetype');
+  font-weight:600; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'Fraunces';
+  src:url('assets/fonts/Fraunces-Regular.ttf') format('truetype');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:'Fraunces';
+  src:url('assets/fonts/Fraunces-Italic.ttf') format('truetype');
+  font-weight:400; font-style:italic; font-display:swap;
+}
+@font-face{
+  font-family:'Space Mono';
+  src:url('assets/fonts/SpaceMono-Regular.ttf') format('truetype');
+  font-weight:400; font-style:normal; font-display:swap;
+}
+
+/* ---- tokens (single-theme DAWN) ---- */
+:root{
+  color-scheme:light;
+  --ground:#FBF9F6; --raised:#FFFFFF; --hairline:#E9E3EE;
+  --ink:#26222E; --muted:#675F73; --iris:#5B4BC4;
+  --good:#2F7357; --warn:#BD5E22; --danger:#B4453C; --slate:#5B6472;
+  --rose:#F6E7DF; --wisteria:#EAE6F6; --powder:#E3EBF4;
+  --display:'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --voice:'Fraunces', Georgia, serif;
+  --mono:'Space Mono', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
+  --sans:system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+*{box-sizing:border-box;}
+html{color-scheme:light; scroll-behavior:smooth;}
+body{
+  margin:0; font-family:var(--sans); color:var(--ink);
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility; overflow-x:hidden;
+  background:
+    radial-gradient(58vw 60vh at 90% -6%, rgba(246,231,223,.55), rgba(246,231,223,0) 60%),
+    radial-gradient(52vw 56vh at -4% 40%, rgba(227,235,244,.5), rgba(227,235,244,0) 62%),
+    radial-gradient(46vw 48vh at 96% 88%, rgba(234,230,246,.5), rgba(234,230,246,0) 60%),
+    var(--ground);
+  background-attachment:fixed;
+}
+::selection{background:rgba(91,75,196,.18);}
+
+/* ---- the honesty margin: double red rule, fixed left edge, desktop only ---- */
+.honesty-margin{
+  position:fixed; top:0; bottom:0; left:48px; width:5px; z-index:5;
+  border-left:1px solid rgba(180,69,60,.55);
+  border-right:1px solid rgba(180,69,60,.55);
+  pointer-events:none;
+}
+@media (max-width:720px){ .honesty-margin{ display:none; } }
+
+/* ---- layout ---- */
+.container{ max-width:1180px; margin:0 auto; padding:0 clamp(1.5rem,6vw,4rem); }
+@media (min-width:720px){ .container{ padding-left:max(clamp(1.5rem,6vw,4rem),92px); } }
+
+section{ padding:clamp(3.4rem,8vh,6.6rem) 0; position:relative; }
+section + section{ border-top:1px solid var(--hairline); }
+.hd{ display:flex; flex-direction:column; gap:1.1rem; }
+
+/* ---- type ---- */
+.eyebrow{
+  font-family:var(--mono); font-size:.7rem; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--iris); margin:0;
+}
+h1,h2{ font-family:var(--display); font-weight:600; margin:0; color:var(--ink);
+  text-wrap:balance; letter-spacing:-.012em; }
+h1{ font-size:clamp(2.6rem,6.2vw,5rem); line-height:1.0; }
+h2{ font-size:clamp(1.95rem,4.1vw,3.35rem); line-height:1.06; }
+h2.sm{ font-size:clamp(1.7rem,3.2vw,2.7rem); }
+.lede{ font-family:var(--display); font-weight:400; color:var(--muted);
+  font-size:clamp(1.35rem,2.4vw,2rem); line-height:1.3; text-wrap:balance; margin:0; }
+.body{ font-size:clamp(1.02rem,1.15vw,1.18rem); line-height:1.62; color:var(--ink);
+  max-width:66ch; margin:0; }
+.body.muted{ color:var(--muted); }
+.small{ font-size:clamp(.92rem,1vw,1.02rem); }
+.voice{ font-family:var(--voice); font-style:italic; color:var(--muted);
+  font-size:clamp(1.15rem,2vw,1.7rem); line-height:1.34; text-wrap:balance; margin:0; }
+.voice.ink{ color:var(--ink); }
+.mono{ font-family:var(--mono); }
+strong{ font-weight:600; }
+.iris-line{ font-family:var(--display); font-weight:600; color:var(--iris);
+  font-size:clamp(1.55rem,3vw,2.3rem); line-height:1.12; text-wrap:balance; margin:0; }
+
+/* ---- chips ---- */
+.chip{ font-family:var(--mono); font-size:.6rem; letter-spacing:.1em;
+  text-transform:uppercase; padding:2px 7px; border-radius:3px; white-space:nowrap;
+  display:inline-block; border:1px solid; line-height:1.5; vertical-align:middle; }
+.chip.fact{ color:var(--good); background:rgba(47,115,87,.09); border-color:rgba(47,115,87,.34); }
+.src{ font-family:var(--mono); font-size:.66rem; letter-spacing:.02em; color:var(--muted); }
+.chips{ display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; }
+
+/* ---- hero (given room to breathe) ---- */
+.hero{ padding-top:clamp(5rem,15vh,9.5rem); padding-bottom:clamp(4rem,10vh,7rem); }
+.hero .hd{ gap:1.6rem; }
+.hero h1{ margin-top:.3rem; font-size:clamp(2.9rem,7vw,5.8rem); line-height:.98; }
+.hero-sub{ max-width:58ch; }
+.cta-row{ display:flex; flex-wrap:wrap; align-items:center; gap:1.4rem; margin-top:.6rem; }
+.btn{ font-family:var(--mono); font-size:.82rem; letter-spacing:.04em;
+  background:var(--iris); color:#fff; text-decoration:none; padding:.85rem 1.5rem;
+  border-radius:7px; border:1px solid var(--iris); display:inline-block;
+  transition:background .18s ease, transform .18s ease; }
+.btn:hover{ background:#4a3bad; }
+.link-quiet{ font-family:var(--mono); font-size:.82rem; letter-spacing:.03em;
+  color:var(--muted); text-decoration:none; border-bottom:1px solid transparent;
+  transition:color .18s ease, border-color .18s ease; }
+.link-quiet:hover{ color:var(--iris); border-bottom-color:rgba(91,75,196,.4); }
+
+/* ---- era: a full-viewport quiet moment ---- */
+#era{ min-height:100vh; display:flex; align-items:center; }
+#era > .container{ width:100%; }
+.era-lines{ display:flex; flex-direction:column; gap:.6rem; margin-top:.6rem; }
+.era-line{ font-size:clamp(1.15rem,1.9vw,1.55rem); line-height:1.4;
+  color:var(--ink); max-width:60ch; margin:0; }
+
+/* ---- product loop ---- */
+.loop{ font-family:var(--mono); font-size:clamp(.92rem,1.5vw,1.15rem);
+  letter-spacing:.05em; color:var(--iris); }
+.philosophy{ border-top:1px solid var(--hairline); padding-top:1.3rem;
+  display:flex; flex-direction:column; gap:.7rem; }
+
+/* ---- grids / cards ---- */
+.grid{ display:grid; gap:1.1rem; }
+.g2{ grid-template-columns:1fr 1fr; }
+.g3{ grid-template-columns:repeat(3,1fr); }
+.card{ background:rgba(255,255,255,.72); border:1px solid var(--hairline);
+  border-radius:10px; padding:1.3rem 1.4rem; display:flex; flex-direction:column; gap:.7rem; }
+.card .lab{ font-family:var(--mono); font-size:.66rem; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--iris); }
+.rule-num{ font-family:var(--display); font-weight:600; font-size:2.4rem;
+  color:var(--iris); line-height:.9; }
+
+/* ---- diagram ---- */
+svg{ max-width:100%; height:auto; display:block; }
+.silent{ fill:none; stroke:var(--muted); stroke-width:1.2; opacity:.5; }
+.younode{ fill:none; stroke:var(--iris); stroke-width:2; }
+.youlabel{ font-family:var(--voice); font-style:italic; fill:var(--iris); font-size:15px; }
+.diaglab{ font-family:var(--mono); font-size:12px; fill:var(--muted); letter-spacing:.03em; }
+.dax{ stroke:var(--muted); stroke-width:1.2; }
+
+/* ---- built strip ---- */
+.strip{ font-family:var(--mono); font-size:clamp(.86rem,1.1vw,1rem);
+  line-height:1.9; color:var(--ink); max-width:80ch; }
+.strip b{ color:var(--iris); font-weight:400; }
+
+/* ---- the road ---- */
+.inkline path{ fill:none; stroke:var(--ink); stroke-linecap:round; stroke-linejoin:round; }
+.actlab{ font-family:var(--mono); font-size:12px; fill:var(--muted); letter-spacing:.06em; }
+.road-open{ font-family:var(--display); font-weight:400; color:var(--muted);
+  font-size:clamp(1.3rem,2.4vw,1.9rem); line-height:1.28; text-wrap:balance; margin:0; max-width:28ch; }
+
+/* ---- distinctive lines ---- */
+.scarce{ font-family:var(--display); font-weight:600; color:var(--ink);
+  font-size:clamp(1.45rem,2.9vw,2.2rem); line-height:1.14; margin:0; text-wrap:balance; }
+.scarce em{ color:var(--iris); font-style:italic; }
+.thesis{ font-family:var(--voice); font-style:italic; color:var(--ink);
+  font-size:clamp(1.35rem,2.7vw,2.15rem); line-height:1.32; text-wrap:balance;
+  max-width:38ch; border-left:2px solid var(--iris); padding-left:1.4rem; margin:0; }
+.epigraph{ font-family:var(--voice); font-style:italic; color:var(--muted);
+  font-size:clamp(1.05rem,1.6vw,1.35rem); line-height:1.35; margin:0; }
+.epigraph .attr{ display:block; font-family:var(--mono); font-style:normal;
+  font-size:.66rem; letter-spacing:.04em; color:var(--muted); margin-top:.5rem; }
+.record-note{ font-family:var(--voice); font-style:italic; color:var(--muted);
+  font-size:clamp(1.02rem,1.5vw,1.28rem); line-height:1.4; max-width:62ch; margin:.4rem 0 0; }
+
+/* ---- constitution ---- */
+.constitution{ background:rgba(255,255,255,.55); border:1px solid var(--hairline);
+  border-radius:12px; padding:clamp(1.8rem,4vw,3rem); display:flex;
+  flex-direction:column; gap:1.6rem; align-items:flex-start; }
+.seal-row{ display:flex; align-items:center; gap:1.1rem; }
+.principles{ list-style:none; margin:0; padding:0; display:grid;
+  grid-template-columns:1fr 1fr; gap:.75rem 2rem; width:100%; }
+.principles li{ display:flex; gap:.7rem; align-items:baseline; line-height:1.5; }
+.principles .n{ font-family:var(--mono); font-size:.72rem; color:var(--iris); }
+
+/* ---- footer ---- */
+footer{ padding:clamp(2.6rem,6vh,4rem) 0; border-top:1px solid var(--hairline); }
+.foot{ display:flex; flex-direction:column; gap:.6rem; font-family:var(--mono);
+  font-size:.72rem; letter-spacing:.03em; color:var(--muted); }
+.foot a{ color:var(--iris); text-decoration:none; }
+.foot a:hover{ text-decoration:underline; }
+
+/* ---- motion (one-shot rise-in) ---- */
+.rise{ opacity:0; transform:translateY(10px);
+  transition:opacity .22s ease-out, transform .22s ease-out; }
+.in .rise{ opacity:1; transform:none; }
+
+a:focus-visible, .btn:focus-visible{ outline:2px solid var(--iris); outline-offset:3px; border-radius:4px; }
+
+/* ---- responsive ---- */
+@media (max-width:760px){
+  .g2,.g3{ grid-template-columns:1fr; }
+  .principles{ grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  *{ animation:none !important; transition:none !important; }
+  .rise{ opacity:1 !important; transform:none !important; }
+}
+</style>
+</head>
+<body>
+<div class="honesty-margin" aria-hidden="true"></div>
+
+<main>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="container hd">
+    <p class="eyebrow rise">SAGA &nbsp;·&nbsp; Bhubaneswar, India</p>
+    <h1 class="rise">In an age of infinite answers, the scarce thing is a mind that can still reason.</h1>
+    <p class="body hero-sub rise" style="font-size:clamp(1.08rem,1.3vw,1.28rem);">SAGA is the offline AI viva for Indian classrooms — an AI that asks until the student can defend what they know, on phones they already own. Built, running today.</p>
+    <div class="cta-row rise">
+      <a class="btn" href="mailto:ansumanmahapatro24@gmail.com">Write to the founder</a>
+      <a class="link-quiet" href="#product">Read how it works &darr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE ERA ============ -->
+<section id="era">
+  <div class="container hd">
+    <p class="eyebrow rise">the era of free answers</p>
+    <h2 class="rise" style="max-width:20ch;">The year answers became free, understanding went invisible.</h2>
+    <div class="era-lines">
+      <p class="era-line rise">An AI can hand a student the answer and quietly take the understanding.</p>
+      <p class="era-line rise">The homework comes back perfect.</p>
+      <p class="era-line rise">The teacher reads silence.</p>
+      <p class="era-line rise">The degree prints anyway.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE PROBLEM ============ -->
+<section id="problem">
+  <div class="container hd">
+    <p class="eyebrow rise">the silence in the classroom</p>
+    <h2 class="rise">One teacher cannot hear sixty students think.</h2>
+    <div class="grid g2 rise" style="align-items:center; margin-top:.6rem;">
+      <p class="body">A real viva doesn't scale. Multiple-choice measures recall — and AI now does the recall. So understanding goes unmeasured until the exam — for the student too.</p>
+      <svg id="problem-diagram" viewBox="0 0 860 360" role="img" aria-label="One teacher facing sixty silent students; one of them, hand-drawn, is a single student.">
+        <circle cx="60" cy="180" r="24" fill="none" stroke="var(--ink)" stroke-width="2"></circle>
+        <text x="60" y="230" text-anchor="middle" class="diaglab">one teacher</text>
+        <line x1="100" y1="180" x2="270" y2="180" class="dax"></line>
+        <path d="M262,174 L278,180 L262,186" fill="none" stroke="var(--muted)" stroke-width="1.4"></path>
+        <g id="node-grid">
+        <circle cx="316" cy="44" r="6" class="silent"></circle>
+        <circle cx="368" cy="44" r="6" class="silent"></circle>
+        <circle cx="420" cy="44" r="6" class="silent"></circle>
+        <circle cx="472" cy="44" r="6" class="silent"></circle>
+        <circle cx="524" cy="44" r="6" class="silent"></circle>
+        <circle cx="576" cy="44" r="6" class="silent"></circle>
+        <circle cx="628" cy="44" r="6" class="silent"></circle>
+        <circle cx="680" cy="44" r="6" class="silent"></circle>
+        <circle cx="732" cy="44" r="6" class="silent"></circle>
+        <circle cx="784" cy="44" r="6" class="silent"></circle>
+        <circle cx="316" cy="96" r="6" class="silent"></circle>
+        <circle cx="368" cy="96" r="6" class="silent"></circle>
+        <circle cx="420" cy="96" r="6" class="silent"></circle>
+        <circle cx="472" cy="96" r="6" class="silent"></circle>
+        <circle cx="524" cy="96" r="6" class="silent"></circle>
+        <circle cx="576" cy="96" r="6" class="silent"></circle>
+        <circle cx="628" cy="96" r="6" class="silent"></circle>
+        <circle cx="680" cy="96" r="6" class="silent"></circle>
+        <circle cx="732" cy="96" r="6" class="silent"></circle>
+        <circle cx="784" cy="96" r="6" class="silent"></circle>
+        <circle cx="316" cy="148" r="6" class="silent"></circle>
+        <circle cx="368" cy="148" r="6" class="silent"></circle>
+        <circle cx="420" cy="148" r="6" class="silent"></circle>
+        <circle cx="472" cy="148" r="6" class="silent"></circle>
+        <circle cx="524" cy="148" r="6" class="silent"></circle>
+        <circle cx="576" cy="148" r="6" class="silent"></circle>
+        <circle cx="628" cy="148" r="6" class="silent"></circle>
+        <circle cx="680" cy="148" r="6" class="silent"></circle>
+        <circle cx="732" cy="148" r="6" class="silent"></circle>
+        <circle cx="784" cy="148" r="6" class="silent"></circle>
+        <circle cx="316" cy="200" r="6" class="silent"></circle>
+        <circle cx="368" cy="200" r="6" class="silent"></circle>
+        <circle cx="420" cy="200" r="6" class="silent"></circle>
+        <circle cx="472" cy="200" r="6" class="silent"></circle>
+        <path d="M 0,-14 C 6.5,-15 13,-8.4 12.6,-1 C 14,6.2 6.6,14.4 0,13.2 C -7.2,14 -14.2,6.6 -12.8,-0.4 C -14,-7.4 -6,-13.4 0,-14 Z" transform="translate(524,200) scale(0.62)" class="younode"></path>
+        <text x="524" y="226" text-anchor="middle" class="youlabel">one student</text>
+        <circle cx="576" cy="200" r="6" class="silent"></circle>
+        <circle cx="628" cy="200" r="6" class="silent"></circle>
+        <circle cx="680" cy="200" r="6" class="silent"></circle>
+        <circle cx="732" cy="200" r="6" class="silent"></circle>
+        <circle cx="784" cy="200" r="6" class="silent"></circle>
+        <circle cx="316" cy="252" r="6" class="silent"></circle>
+        <circle cx="368" cy="252" r="6" class="silent"></circle>
+        <circle cx="420" cy="252" r="6" class="silent"></circle>
+        <circle cx="472" cy="252" r="6" class="silent"></circle>
+        <circle cx="524" cy="252" r="6" class="silent"></circle>
+        <circle cx="576" cy="252" r="6" class="silent"></circle>
+        <circle cx="628" cy="252" r="6" class="silent"></circle>
+        <circle cx="680" cy="252" r="6" class="silent"></circle>
+        <circle cx="732" cy="252" r="6" class="silent"></circle>
+        <circle cx="784" cy="252" r="6" class="silent"></circle>
+        <circle cx="316" cy="304" r="6" class="silent"></circle>
+        <circle cx="368" cy="304" r="6" class="silent"></circle>
+        <circle cx="420" cy="304" r="6" class="silent"></circle>
+        <circle cx="472" cy="304" r="6" class="silent"></circle>
+        <circle cx="524" cy="304" r="6" class="silent"></circle>
+        <circle cx="576" cy="304" r="6" class="silent"></circle>
+        <circle cx="628" cy="304" r="6" class="silent"></circle>
+        <circle cx="680" cy="304" r="6" class="silent"></circle>
+        <circle cx="732" cy="304" r="6" class="silent"></circle>
+        <circle cx="784" cy="304" r="6" class="silent"></circle>
+        </g>
+      </svg>
+    </div>
+    <p class="scarce rise" style="margin-top:1.4rem;">Content is free now; <em>position</em> is what is scarce.</p>
+  </div>
+</section>
+
+<!-- ============ THE PRODUCT ============ -->
+<section id="product">
+  <div class="container hd">
+    <p class="eyebrow rise">the viva that scales</p>
+    <h2 class="sm rise">Every student defends. Every teacher hears. Offline, on phones they already own.</h2>
+    <p class="loop rise" style="margin-top:.3rem;">teach &rarr; defend &rarr; see &rarr; adjust</p>
+    <p class="body rise" style="margin-top:.4rem;">The teacher certifies the question sets — human-curated, cryptographically signed — students defend their understanding in Socratic dialogue, fully offline, nothing leaving the device. The teacher sees which concepts held and which slipped — the class's <strong>comprehension shape</strong> — before the next lecture, because from now on, they always will.</p>
+    <div class="philosophy rise">
+      <p class="iris-line">An AI that makes you reason — not one that reasons for you.</p>
+      <p class="body muted small">A coach, not a vending machine; a scaffold, not a crutch — built so you need it less over time, not more.</p>
+      <p class="voice">&ldquo;The guide won't give you answers — it asks until you see your path.&rdquo;</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE RULES ============ -->
+<section id="rules">
+  <div class="container hd">
+    <p class="eyebrow rise">rules we refuse to break</p>
+    <h2 class="sm rise">Rules a rival can't copy without breaking its own business.</h2>
+    <div class="grid g3 rise" style="margin-top:.6rem;">
+      <div class="card">
+        <span class="rule-num">1</span>
+        <p class="body small"><strong>Never-rank, enforced in code</strong> — class views are aggregate-only; a class smaller than five shows the teacher nothing; there is no score in the system to rank by.</p>
+      </div>
+      <div class="card">
+        <span class="rule-num">2</span>
+        <p class="body small"><strong>Teacher-certified content</strong> — every question set is human-curated and cryptographically signed before a student ever sees it.</p>
+      </div>
+      <div class="card">
+        <span class="rule-num">3</span>
+        <p class="body small"><strong>User-owned data</strong> — the student's work lives in an encrypted vault on their own device, exportable by them under India's data law, never a company data-lake.</p>
+      </div>
+    </div>
+    <p class="body muted rise" style="margin-top:.4rem;">Privacy is by construction, not policy: all inference on-device, no network calls — shown, not promised.</p>
+  </div>
+</section>
+
+<!-- ============ WHY NOW ============ -->
+<section id="why-now">
+  <div class="container hd">
+    <p class="eyebrow rise">three clocks, synchronized</p>
+    <h2 class="sm rise">The disease and the cure arrived together.</h2>
+    <div class="grid g3 rise" style="margin-top:.6rem;">
+      <div class="card">
+        <span class="lab">Classroom clock</span>
+        <p class="body small">The AI answer-flood hit coursework; the comprehension problem was confirmed in every one of our five institutional conversations.</p>
+        <div class="chips"><span class="chip fact">FACT</span></div>
+      </div>
+      <div class="card">
+        <span class="lab">Hardware clock</span>
+        <p class="body small">Capable open ~4B models (2.5GB) now fit the budget-Android tier students already carry.</p>
+        <div class="chips"><span class="chip fact">FACT</span></div>
+      </div>
+      <div class="card">
+        <span class="lab">Demographic clock</span>
+        <p class="body small">India's working-age population peaks ~2041; the largest cohort that will ever need legible capability, on a deadline.</p>
+        <div class="chips"><span class="chip fact">FACT</span></div>
+      </div>
+    </div>
+    <p class="src rise" style="margin-top:.5rem; max-width:70ch; line-height:1.5;">Aligned with UNESCO's AI Competency Framework for Teachers (2024) — teacher accountability never designed away.</p>
+  </div>
+</section>
+
+<!-- ============ BUILT, VERIFIED ============ -->
+<section id="built">
+  <div class="container hd">
+    <p class="eyebrow rise">built, not promised</p>
+    <p class="strip rise">Offline Socratic sessions on a ~4B open model via our own <b>llama.cpp FFI</b> &middot; encrypted vault &middot; signed content pipeline &middot; teacher dashboard with an aggregate-only privacy gate &middot; <b>540 mobile + 228 server automated tests green</b> &middot; verified end-to-end on a live phone.</p>
+    <p class="body rise" style="margin-top:.6rem;">Five institutional conversations; the problem confirmed in every one; three campuses committed to hosting demos in the new academic session.</p>
+  </div>
+</section>
+
+<!-- ============ THE ROAD ============ -->
+<section id="road">
+  <div class="container hd">
+    <p class="eyebrow rise">the road</p>
+    <h2 class="sm rise">The viva earns the classroom. The map earns the working life.</h2>
+    <p class="road-open rise" style="margin-top:.2rem;">Careers became volatile this decade. Volatile things get terminals.</p>
+    <svg class="inkline rise" viewBox="0 0 900 150" role="img" aria-label="One continuous ink line thickening across three acts." style="margin:.4rem 0;">
+      <path d="M60,96 C180,66 262,66 342,86" stroke-width="3"></path>
+      <path d="M342,86 C442,102 522,58 622,68" stroke-width="7"></path>
+      <path d="M622,68 C722,76 802,40 860,50" stroke-width="12"></path>
+      <text class="actlab" x="150" y="132">Act 1 &middot; Campus</text>
+      <text class="actlab" x="470" y="132">Act 2 &middot; the Navigator</text>
+      <text class="actlab" x="770" y="132">Act 3 &middot; the record</text>
+    </svg>
+    <div class="grid g3 rise">
+      <div class="card"><span class="lab">Act 1 &middot; Campus</span><p class="body small">The viva earns the classroom.</p></div>
+      <div class="card"><span class="lab">Act 2 &middot; the Navigator</span><p class="body small">A living map of professions: walk up to deepen, across to pivot — free for every graduating student.</p></div>
+      <div class="card"><span class="lab">Act 3 &middot; the record</span><p class="body small">As credentials decay, the sealed, replayable record that gets a person believed.</p></div>
+    </div>
+    <p class="voice rise" style="margin-top:.9rem; max-width:52ch;">&ldquo;When markets turned volatile in the '80s, they got a terminal. Working life just turned volatile.&rdquo;</p>
+    <p class="thesis rise" style="margin-top:1.5rem;">We don't manufacture demand. We collapse the distance between a person and the demand that already exists — and make their capability legible when they arrive.</p>
+  </div>
+</section>
+
+<!-- ============ THE CONSTITUTION ============ -->
+<section id="constitution">
+  <div class="container hd">
+    <p class="eyebrow rise">the constitution</p>
+    <div class="constitution rise">
+      <p class="epigraph">&ldquo;Be the air society breathes.&rdquo;<span class="attr">— p.1 of the notebook where this company started</span></p>
+      <div class="seal-row">
+        <svg width="52" height="52" viewBox="0 0 64 64" role="img" aria-label="SAGA seal">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="var(--iris)" stroke-width="2.4"></circle>
+          <circle cx="32" cy="32" r="15" fill="none" stroke="var(--iris)" stroke-width="1.6" opacity=".7"></circle>
+          <circle cx="32" cy="32" r="4" fill="var(--iris)"></circle>
+        </svg>
+        <p class="voice ink" style="margin:0;">&ldquo;Any layer a person must use to live, they must be able to leave — with everything.&rdquo;</p>
+      </div>
+      <ul class="principles">
+        <li><span class="n">01</span><span class="body small"><strong>Never rank the person</strong> — dignity at the floor, competition only for distinction.</span></li>
+        <li><span class="n">02</span><span class="body small"><strong>Sovereign by construction</strong> — your device, your data, leave with everything.</span></li>
+        <li><span class="n">03</span><span class="body small"><strong>Loyal to the human it touches</strong> — measured by outcomes, never attention.</span></li>
+        <li><span class="n">04</span><span class="body small"><strong>Makes you reason</strong> — never reasons for you.</span></li>
+        <li><span class="n">05</span><span class="body small"><strong>No engagement machinery</strong> — no streaks, badges, or leaderboards; checkable by absence.</span></li>
+        <li><span class="n">06</span><span class="body small"><strong>Teacher-in-the-loop</strong> — a human certifies everything a student sees.</span></li>
+      </ul>
+      <p class="record-note">The record is your evidence to yourself first — you cannot fool yourself about what you actually understand.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container foot">
+    <p style="margin:0;">Built solo in Bhubaneswar by Ansuman Mahapatro.</p>
+    <p style="margin:0;"><a href="mailto:ansumanmahapatro24@gmail.com">ansumanmahapatro24@gmail.com</a></p>
+    <p style="margin:0;">No trackers, no analytics, no cookies on this page — checkable by absence.</p>
+    <p style="margin:0; color:var(--muted);">© 2026 Ansuman Mahapatro.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* one-shot rise-in on scroll */
+  var sections = [].slice.call(document.querySelectorAll('section'));
+  if(reduce || !('IntersectionObserver' in window)){
+    sections.forEach(function(s){ s.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        var s = e.target;
+        s.classList.add('in');
+        [].slice.call(s.querySelectorAll('.rise')).forEach(function(node,i){
+          node.style.transitionDelay = (i*55) + 'ms';
+        });
+        io.unobserve(s);
+      }
+    });
+  }, { threshold:0.18, rootMargin:'0px 0px -8% 0px' });
+  sections.forEach(function(s){ io.observe(s); });
+})();
+</script>
+</body>
+</html>
