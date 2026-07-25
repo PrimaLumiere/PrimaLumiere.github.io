@@ -9,6 +9,16 @@
 <meta property="og:title" content="SAGA — an AI that makes you reason">
 <meta property="og:description" content="The offline AI viva for Indian classrooms — an AI that asks until the student can defend what they know, on phones they already own.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://primalumiere.github.io/">
+<meta property="og:image" content="https://primalumiere.github.io/assets/og-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="SAGA — in an age of infinite answers, the scarce thing is a mind that can still reason.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SAGA — an AI that makes you reason">
+<meta name="twitter:description" content="The offline AI viva for Indian classrooms — an AI that asks until the student can defend what they know, on phones they already own.">
+<meta name="twitter:image" content="https://primalumiere.github.io/assets/og-card.png">
+<link rel="canonical" href="https://primalumiere.github.io/">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <style>
 /* ---- fonts (real files, self-hosted) ---- */
@@ -196,6 +206,17 @@ svg{ max-width:100%; height:auto; display:block; }
   grid-template-columns:1fr 1fr; gap:.75rem 2rem; width:100%; }
 .principles li{ display:flex; gap:.7rem; align-items:baseline; line-height:1.5; }
 .principles .n{ font-family:var(--mono); font-size:.72rem; color:var(--iris); }
+
+/* ---- for the curious (quiet pre-footer note) ---- */
+#curious .hd{ gap:1rem; }
+.chip-row{ display:flex; flex-wrap:wrap; gap:.7rem; margin-top:.5rem; }
+.linkchip{ font-family:var(--mono); font-size:.76rem; letter-spacing:.03em;
+  color:var(--muted); text-decoration:none; background:rgba(255,255,255,.72);
+  border:1px solid var(--hairline); border-radius:7px; padding:.6rem 1rem;
+  display:inline-block; line-height:1.4; max-width:100%;
+  transition:color .18s ease, border-color .18s ease, background .18s ease; }
+.linkchip:hover{ color:var(--iris); border-color:rgba(91,75,196,.4);
+  background:rgba(255,255,255,.95); }
 
 /* ---- footer ---- */
 footer{ padding:clamp(2.6rem,6vh,4rem) 0; border-top:1px solid var(--hairline); }
@@ -456,6 +477,21 @@ a:focus-visible, .btn:focus-visible{ outline:2px solid var(--iris); outline-offs
         <li><span class="n">06</span><span class="body small"><strong>Teacher-in-the-loop</strong> — a human certifies everything a student sees.</span></li>
       </ul>
       <p class="record-note">The record is your evidence to yourself first — you cannot fool yourself about what you actually understand.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOR THE CURIOUS ============ -->
+<section id="curious">
+  <div class="container hd">
+    <p class="eyebrow rise">for the curious</p>
+    <h2 class="sm rise">The stack, and what we're testing next.</h2>
+    <p class="body rise">Student inference runs entirely on the student's own phone — a ~4B open model executed through our own llama.cpp FFI — so a session makes no network calls and costs our servers nothing. The server is Rust over Postgres; it generates the teacher's certified content and signs it with Ed25519 before any student sees it, so cost grows with lectures and never with enrolment.</p>
+    <p class="body muted rise">The repository README carries that architecture in full, alongside the six rules above. What we're testing next: the demos three campuses have committed to hosting in the new academic session, then pilots — and whether a teacher, shown the comprehension shape, actually changes the next lecture.</p>
+    <div class="chip-row rise">
+      <a class="linkchip" href="https://github.com/PrimaLumiere/PrimaLumiere.github.io#readme">the technical story &rarr;</a>
+      <a class="linkchip" href="mailto:ansumanmahapatro24@gmail.com">write to the founder &rarr;</a>
+      <a class="linkchip" href="#constitution">the constitution &uarr;</a>
     </div>
   </div>
 </section>

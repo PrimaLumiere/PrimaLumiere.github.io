@@ -46,6 +46,37 @@ sees it, so cost grows with lectures and never with enrolment. The student's wor
 lives in an encrypted on-device vault they own and can export. Teacher views are
 aggregate-only, gated so a cohort smaller than five is never individually visible.
 
+## The research angle
+
+The question we are actually testing is a deployment question, not a model-scale
+one: how far per-subject specialization — small adapters trained per subject and
+swapped at runtime — can push the quality of comprehension probing at the ~4B
+scale that fits a phone a student already owns. A large hosted model would probe
+better today; it would also need the network, the per-session cost, and the data
+exhaust this design refuses, so the honest question is whether specialization
+buys back enough of that gap to be worth a teacher's trust. Two design choices
+carry that risk deliberately: the dialogue runs as an explicit state machine
+rather than open generation, so the model picks the next question inside a
+bounded set instead of improvising the session, and a human certifies every
+question set before it ships. Together they keep the model in the role of the
+examiner's instrument, never the author of a judgement that outlives the session.
+
+## Reproducibility & verification
+
+Three claims here are checkable rather than asserted. The offline claim is
+demonstrable in airplane mode: switch the radios off, run a full session end to
+end, and the dialogue still runs, because the model executes on the device and
+the session makes no network calls. The content claim is cryptographic: the
+server signs each compiled question set with Ed25519, and the app verifies that
+signature against a public key pinned in the binary before a student sees a
+question — an unsigned or altered pack raises a verification error instead of
+opening. The never-rank claim is enforced at the type level rather than by
+policy: the internal per-class aggregate is deliberately not serializable, so no
+code path can put it on a screen; it has to pass through one release function
+that needs a cohort of at least five and emits per-concept aggregates only. The
+first takes a minute with the phone in hand; the other two we walk through in
+the source.
+
 ## Ethics core
 
 1. **Never rank the person** — dignity at the floor, competition only for distinction.
